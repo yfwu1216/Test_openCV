@@ -597,12 +597,12 @@
 ////! [getssimopt]
 
 //===================Histograms_Matching=========================//
-/**
-* @file BackProject_Demo1.cpp
-* @brief Sample code for backproject function usage
-* @author OpenCV team
-*/
-
+///**
+//* @file BackProject_Demo1.cpp
+//* @brief Sample code for backproject function usage
+//* @author OpenCV team
+//*/
+//
 //#include "opencv2/imgproc.hpp"
 //#include "opencv2/imgcodecs.hpp"
 //#include "opencv2/highgui.hpp"
@@ -626,7 +626,7 @@
 //int main(int, char** argv)
 //{
 //	/// Read the image
-//	src = imread(argv[1], IMREAD_COLOR);
+//	src = imread("data/lena.jpg", IMREAD_COLOR);
 //
 //	if (src.empty())
 //	{
@@ -670,6 +670,7 @@
 //
 //	/// Get the Histogram and normalize it
 //	calcHist(&hue, 1, 0, Mat(), hist, 1, &histSize, &ranges, true, false);
+//	cout << hist << endl;
 //	normalize(hist, hist, 0, 255, NORM_MINMAX, -1, Mat());
 //
 //	/// Get Backprojection
@@ -698,87 +699,265 @@
 * @author
 */
 
-#include "opencv2/highgui.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/imgproc.hpp"
-#include <iostream>
+//#include "opencv2/highgui.hpp"
+//#include "opencv2/imgcodecs.hpp"
+//#include "opencv2/imgproc.hpp"
+//#include <iostream>
+//
+//using namespace std;
+//using namespace cv;
+//
+///**
+//* @function main
+//*/
+//int main(int argc, char** argv)
+//{
+//	Mat src, dst;
+//
+//	/// Load image
+//	String imageName("data/lena.jpg"); // by default
+//
+//	if (argc > 1)
+//	{
+//		imageName = argv[1];
+//	}
+//
+//	src = imread(imageName, IMREAD_COLOR);
+//
+//	if (src.empty())
+//	{
+//		return -1;
+//	}
+//
+//	/// Separate the image in 3 places ( B, G and R )
+//	vector<Mat> bgr_planes;
+//	split(src, bgr_planes);
+//
+//	/// Establish the number of bins
+//	int histSize = 32;
+//
+//	/// Set the ranges ( for B,G,R) )
+//	float range[] = { 0, 256 };
+//	const float* histRange = { range };
+//
+//	bool uniform = true; bool accumulate = false;
+//
+//	Mat b_hist, g_hist, r_hist;
+//
+//	/// Compute the histograms:
+//	calcHist(&bgr_planes[0], 1, 0, Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
+//	calcHist(&bgr_planes[1], 1, 0, Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
+//	calcHist(&bgr_planes[2], 1, 0, Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
+//	//cout << b_hist << endl;
+//	// Draw the histograms for B, G and R
+//	int hist_w = 512; int hist_h = 400;
+//	int bin_w = cvRound((double)hist_w / histSize);
+//
+//	Mat histImage(hist_h, hist_w, CV_8UC3, Scalar(0, 0, 0));
+//
+//	/// Normalize the result to [ 0, histImage.rows ]
+//	normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+//	
+//	normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+//	normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+//
+//
+//	/// Draw for each channel
+//	for (int i = 1; i < histSize; i++)
+//	{
+//		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(b_hist.at<float>(i - 1))),
+//			Point(bin_w*(i), hist_h - cvRound(b_hist.at<float>(i))),
+//			Scalar(255, 0, 0), 2, 8, 0);
+//		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(g_hist.at<float>(i - 1))),
+//			Point(bin_w*(i), hist_h - cvRound(g_hist.at<float>(i))),
+//			Scalar(0, 255, 0), 2, 8, 0);
+//		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(r_hist.at<float>(i - 1))),
+//			Point(bin_w*(i), hist_h - cvRound(r_hist.at<float>(i))),
+//			Scalar(0, 0, 255), 2, 8, 0);
+//	}
+//
+//	/// Display
+//	namedWindow("calcHist Demo", WINDOW_AUTOSIZE);
+//	imshow("calcHist Demo", histImage);
+//
+//	waitKey(0);
+//
+//	return 0;
+//
+//}
 
+//==================== light stream computation =======================//
+//#include "opencv2/video/tracking.hpp"
+//#include "opencv2/imgproc.hpp"
+//#include "opencv2/videoio.hpp"
+//#include "opencv2/highgui.hpp"
+//
+//#include <iostream>
+//
+//using namespace cv;
+//using namespace std;
+//
+//static void help()
+//{
+//	cout <<
+//		"\nThis program demonstrates dense optical flow algorithm by Gunnar Farneback\n"
+//		"Mainly the function: calcOpticalFlowFarneback()\n"
+//		"Call:\n"
+//		"./fback\n"
+//		"This reads from video camera 0\n" << endl;
+//}
+//static void drawOptFlowMap(const Mat& flow, Mat& cflowmap, int step,
+//	double, const Scalar& color)
+//{
+//	for (int y = 0; y < cflowmap.rows; y += step)
+//		for (int x = 0; x < cflowmap.cols; x += step)
+//		{
+//			const Point2f& fxy = flow.at<Point2f>(y, x);
+//			line(cflowmap, Point(x, y), Point(cvRound(x + fxy.x), cvRound(y + fxy.y)),
+//				color);
+//			circle(cflowmap, Point(x, y), 2, color, -1);
+//		}
+//}
+//
+//int main(int argc, char** argv)
+//{
+//	cv::CommandLineParser parser(argc, argv, "{help h||}");
+//	if (parser.has("help"))
+//	{
+//		help();
+//		return 0;
+//	}
+//	VideoCapture cap(0);
+//	help();
+//	if (!cap.isOpened())
+//		return -1;
+//
+//	Mat flow, cflow, frame;
+//	UMat gray, prevgray, uflow;
+//	namedWindow("flow", 1);
+//
+//	for (;;)
+//	{
+//		cap >> frame;
+//		cvtColor(frame, gray, COLOR_BGR2GRAY);
+//
+//		if (!prevgray.empty())
+//		{
+//			calcOpticalFlowFarneback(prevgray, gray, uflow, 0.5, 3, 15, 3, 5, 1.2, 0);
+//			cvtColor(prevgray, cflow, COLOR_GRAY2BGR);
+//			uflow.copyTo(flow);
+//			drawOptFlowMap(flow, cflow, 16, 1.5, Scalar(0, 255, 0));
+//			imshow("flow", cflow);
+//		}
+//		if (waitKey(30) >= 0)
+//			break;
+//		std::swap(prevgray, gray);
+//	}
+//	return 0;
+//}
+
+
+//==================== calibrate camera =======================//
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <ctime>
+#include <cstdio>
+
+#include <opencv2/core.hpp>
+#include <opencv2/core/utility.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d.hpp> // this is very important
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
+
+#define pi 3.14159265358979323846
 using namespace std;
 using namespace cv;
 
-/**
-* @function main
-*/
-int main(int argc, char** argv)
+vector<Point3f> calcBoardCornerPositions(int gridW, int gridH, float squareSize)
 {
-	Mat src, dst;
+	vector<Point3f> objectPoints;
+	for (int i = 0; i < gridH; i++)
+		for (int j = 0; j < gridW; j++)
+			objectPoints.push_back(Point3f(float(j*squareSize), float(i*squareSize), 0));
+	return objectPoints;
+}
 
-	/// Load image
-	String imageName("data/lena.jpg"); // by default
+vector<Point3f> calcBoardCornerPositions(int gridW, int gridH)
+{
+	vector<Point3f> objectPoints;
+	for (int i = 0; i < gridH; i++)
+		for (int j = 0; j < gridW; j++)
+			objectPoints.push_back(Point3f(float(j * 89), float(i * 83), 0));
+	return objectPoints;
+}
 
-	if (argc > 1)
+int main()
+{
+	VideoCapture cap(0);
+	if (!cap.isOpened()) return -1;
+	//cap.set(CV_CAP_PROP_FRAME_WIDTH, 1920);
+	//cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
+	Mat images, gray;
+	Size grids(9, 6);
+	int Grids_Size = 260;
+	float Ang_X, Ang_Y, Ang_Z;
+	float X, Y, Z;
+	char key; int i = 0;
+	//float A[][3] = { { 644.8137843176841, 0, 302.6526363184274 },{0, 649.3562275395091, 286.5283609342574 },{0, 0, 1 }};
+	//float B[] = { 0.01655500980525433, 0.1901812353222618, 0.003461616464410258, 0.002455084197033077, -1.444734184159016 };
+	float A[][3] = { { 988.74755, 0, 309.709197 },{ 0, 988.2410178, 239.85705 },{ 0, 0, 1 } };
+	float B[] = { -0.41287433, 1.80600373, 0.00250586, 0.0013610796, -7.6232044988 };
+	Mat rvecs(3, 1, CV_32F), tvecs(3, 1, CV_32F), cameraMatrix(3, 3, CV_32F), distCoeffs(1, 5, CV_32F), R(3, 3, CV_32FC1);
+
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+		{
+			cameraMatrix.at<float>(i, j) = A[i][j];
+			R.at<float>(i, j) = 0;
+		}
+	for (int i = 0; i < 5; i++)
+		distCoeffs.at<float>(0, i) = B[i];
+	namedWindow("chessboard", 0);
+	namedWindow("sensed image", 0);
+	cap >> images;
+	while (1)
 	{
-		imageName = argv[1];
+		cap >> images;
+		imshow("sensed image", images);
+		vector<Point2f> corners;
+		bool found = findChessboardCorners(images, grids, corners, CALIB_CB_ADAPTIVE_THRESH + CALIB_CB_NORMALIZE_IMAGE + CALIB_CB_FAST_CHECK);
+		if (found)
+		{
+			cvtColor(images, gray, CV_BGR2GRAY);
+			cornerSubPix(gray, corners, Size(11, 11), Size(-1, -1),
+				TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));//0.1为精度
+			drawChessboardCorners(images, grids, corners, found);
+			vector<Point3f> objectPoints = calcBoardCornerPositions(grids.width, grids.height, Grids_Size);
+			//vector<Point3f> objectPoints = calcBoardCornerPositions(grids.width, grids.height);
+			solvePnP(objectPoints, corners, cameraMatrix, distCoeffs, rvecs, tvecs);
+			Rodrigues(rvecs, R);
+
+			Ang_X = asin(R.at<double>(1, 0) / cos(asin(-R.at<double>(2, 0)))) / pi * 180;
+			Ang_Y = asin(-R.at<double>(2, 0)) / pi * 180;
+			Ang_Z = asin(R.at<double>(2, 1) / cos(asin(-R.at<double>(2, 0)))) / pi * 180;
+
+			X = R.at<double>(0, 0) *objectPoints[22].x + R.at<double>(0, 1)  * objectPoints[22].y + R.at<double>(0, 2)  * objectPoints[22].z + tvecs.at<double>(0, 0);
+			Y = R.at<double>(1, 0) *objectPoints[22].x + R.at<double>(1, 1)  * objectPoints[22].y + R.at<double>(1, 2)  * objectPoints[22].z + tvecs.at<double>(1, 0);
+			Z = R.at<double>(2, 0) *objectPoints[22].x + R.at<double>(2, 1)  * objectPoints[22].y + R.at<double>(2, 2)  * objectPoints[22].z + tvecs.at<double>(2, 0);
+			putText(images, "X:" + to_string(X), { 1, 50 }, 0, 1.0f, CV_RGB(255, 0, 0), 2);
+			putText(images, "Y:" + to_string(Y), { 1, 150 }, 0, 1.0f, CV_RGB(0, 255, 0), 2);
+			putText(images, "Z:" + to_string(Z), { 1, 250 }, 0, 1.0f, CV_RGB(0, 0, 255), 2);
+			putText(images, "Ang_X:" + to_string(Ang_X), { 300, 50 }, 0, 1.0f, CV_RGB(255, 0, 0), 2);
+			putText(images, "Ang_Y:" + to_string(Ang_Y), { 300, 150 }, 0, 1.0f, CV_RGB(0, 255, 0), 2);
+			putText(images, "Ang_Z:" + to_string(Ang_Z), { 300, 250 }, 0, 1.0f, CV_RGB(0, 0, 255), 2);
+			imshow("chessboard", images);
+		}
+		key = waitKey(20);
+		if (key == ' ') // 按空格键退出
+			break;
 	}
-
-	src = imread(imageName, IMREAD_COLOR);
-
-	if (src.empty())
-	{
-		return -1;
-	}
-
-	/// Separate the image in 3 places ( B, G and R )
-	vector<Mat> bgr_planes;
-	split(src, bgr_planes);
-
-	/// Establish the number of bins
-	int histSize = 256;
-
-	/// Set the ranges ( for B,G,R) )
-	float range[] = { 0, 256 };
-	const float* histRange = { range };
-
-	bool uniform = true; bool accumulate = false;
-
-	Mat b_hist, g_hist, r_hist;
-
-	/// Compute the histograms:
-	calcHist(&bgr_planes[0], 1, 0, Mat(), b_hist, 1, &histSize, &histRange, uniform, accumulate);
-	calcHist(&bgr_planes[1], 1, 0, Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
-	calcHist(&bgr_planes[2], 1, 0, Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
-
-	// Draw the histograms for B, G and R
-	int hist_w = 512; int hist_h = 400;
-	int bin_w = cvRound((double)hist_w / histSize);
-
-	Mat histImage(hist_h, hist_w, CV_8UC3, Scalar(0, 0, 0));
-
-	/// Normalize the result to [ 0, histImage.rows ]
-	normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
-	normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
-	normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
-
-	/// Draw for each channel
-	for (int i = 1; i < histSize; i++)
-	{
-		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(b_hist.at<float>(i - 1))),
-			Point(bin_w*(i), hist_h - cvRound(b_hist.at<float>(i))),
-			Scalar(255, 0, 0), 2, 8, 0);
-		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(g_hist.at<float>(i - 1))),
-			Point(bin_w*(i), hist_h - cvRound(g_hist.at<float>(i))),
-			Scalar(0, 255, 0), 2, 8, 0);
-		line(histImage, Point(bin_w*(i - 1), hist_h - cvRound(r_hist.at<float>(i - 1))),
-			Point(bin_w*(i), hist_h - cvRound(r_hist.at<float>(i))),
-			Scalar(0, 0, 255), 2, 8, 0);
-	}
-
-	/// Display
-	namedWindow("calcHist Demo", WINDOW_AUTOSIZE);
-	imshow("calcHist Demo", histImage);
-
-	waitKey(0);
-
 	return 0;
-
 }
