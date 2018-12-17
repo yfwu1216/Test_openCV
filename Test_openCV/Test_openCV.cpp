@@ -17,6 +17,83 @@
 //	return 0;
 //}
 
+//=====================  读取 MAT中的数据  ======================//
+#include <opencv2\opencv.hpp>
+using namespace std;
+using namespace cv;
+
+int main(int argc, char ** argv)
+{
+	Mat img(5, 3, CV_8UC3, Scalar(50, 50, 50));
+	cout << "rows:" << img.rows << endl;
+	cout << "cols:" << img.cols << endl;
+	cout << "channels:" << img.channels() << endl;
+	cout << "dims:" << img.dims << endl;
+
+	// 每个元素大小，单位字节
+	cout << "elemSize:" << img.elemSize() << endl;    //1 * 3,一个位置，三个通道的CV_8U  
+													  // 每个通道大小，单位字节
+	cout << "elemSize1:" << img.elemSize1() << endl;   //1 
+
+													   /*
+													   每一行（第一级）在矩阵内存中，占据的字节的数量
+													   二维图像由一行一行（第一级）构成，而每一行又由一个一个点（第二级）构成
+													   二维图像中step[0]就是每一行（第一级）在矩阵内存中，占据的字节的数量。
+													   也就是说step[i]就是第i+1级在矩阵内存中占据的字节的数量。
+													   */
+	cout << "step[0]:" << img.step[0] << endl;   //3 * ( 1 * 3 )  
+	cout << "step[1]:" << img.step[1] << endl;   //1 * 3  
+	cout << "total:" << img.total() << endl;   //3*5  
+
+											   //----------------------地址运算---------------------//
+	for (int row = 0; row < img.rows; row++)
+	{
+		for (int col = 0; col < img.cols; col++)
+		{
+			//[row,col]像素的第1通道地址解析为Blue通道
+			*(img.data + img.step[0] * row + img.step[1] * col) += 15;
+
+			//[row,col]像素的第2通道地址解析为Green通道
+			*(img.data + img.step[0] * row + img.step[1] * col + img.elemSize1()) += 16;
+
+			//[row,col]像素的第3通道地址解析为Red通道
+			*(img.data + img.step[0] * row + img.step[1] * col + img.elemSize1() * 2) += 17;
+
+		}
+	}
+	cout << "地址运算:\n" << img << endl;
+
+	//----------------------Mat的成员函数at<>()---------------------//
+	for (int row = 0; row < img.rows; row++)
+	{
+		for (int col = 0; col < img.cols; col++)
+		{
+			/*
+			.at  return (img.data + step.p[0] * i0))[i1]
+			直接给[row,col]赋值，但是访问速度较慢
+			*/
+			img.at<Vec3b>(row, col) = Vec3b(0, 1, 2);
+		}
+	}
+	cout << "成员函数at<>():\n" << img << endl;
+
+	//----------------------Mat的成员函数ptr<>()---------------------//
+	int nr = img.rows;
+	int nc = img.cols * img.channels();//每一行的元素个数
+	for (int j = 0; j < nr; j++)
+	{
+		uchar* data = img.ptr<uchar>(j);
+		for (int i = 0; i < nc; i++)
+		{
+			*data++ += 99;
+		}
+	}
+	cout << "成员函数ptr<>():\n" << img << endl;
+
+	waitKey(0);
+	return 0;
+}
+
 //===================  OPENCV 使用surf ===================//
 // https://blog.csdn.net/lv1247736542/article/details/80312789
 // https://blog.csdn.net/lv1247736542/article/details/80309984
@@ -858,106 +935,148 @@
 
 
 //==================== calibrate camera =======================//
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <ctime>
-#include <cstdio>
+//#include <iostream>
+//#include <sstream>
+//#include <string>
+//#include <ctime>
+//#include <cstdio>
+//
+//#include <opencv2/core.hpp>
+//#include <opencv2/core/utility.hpp>
+//#include <opencv2/imgproc.hpp>
+//#include <opencv2/calib3d.hpp> // this is very important
+//#include <opencv2/imgcodecs.hpp>
+//#include <opencv2/videoio.hpp>
+//#include <opencv2/highgui.hpp>
+//
+//#define pi 3.14159265358979323846
+//using namespace std;
+//using namespace cv;
+//
+//vector<Point3f> calcBoardCornerPositions(int gridW, int gridH, float squareSize)
+//{
+//	vector<Point3f> objectPoints;
+//	for (int i = 0; i < gridH; i++)
+//		for (int j = 0; j < gridW; j++)
+//			objectPoints.push_back(Point3f(float(j*squareSize), float(i*squareSize), 0));
+//	return objectPoints;
+//}
+//
+//vector<Point3f> calcBoardCornerPositions(int gridW, int gridH)
+//{
+//	vector<Point3f> objectPoints;
+//	for (int i = 0; i < gridH; i++)
+//		for (int j = 0; j < gridW; j++)
+//			objectPoints.push_back(Point3f(float(j * 89), float(i * 83), 0));
+//	return objectPoints;
+//}
+//
+//int main()
+//{
+//	VideoCapture cap(0);
+//	if (!cap.isOpened()) return -1;
+//	//cap.set(CV_CAP_PROP_FRAME_WIDTH, 1920);
+//	//cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
+//	Mat images, gray;
+//	Size grids(9, 6);
+//	int Grids_Size = 260;
+//	float Ang_X, Ang_Y, Ang_Z;
+//	float X, Y, Z;
+//	char key; int i = 0;
+//	//float A[][3] = { { 644.8137843176841, 0, 302.6526363184274 },{0, 649.3562275395091, 286.5283609342574 },{0, 0, 1 }};
+//	//float B[] = { 0.01655500980525433, 0.1901812353222618, 0.003461616464410258, 0.002455084197033077, -1.444734184159016 };
+//	float A[][3] = { { 988.74755, 0, 309.709197 },{ 0, 988.2410178, 239.85705 },{ 0, 0, 1 } };
+//	float B[] = { -0.41287433, 1.80600373, 0.00250586, 0.0013610796, -7.6232044988 };
+//	Mat rvecs(3, 1, CV_32F), tvecs(3, 1, CV_32F), cameraMatrix(3, 3, CV_32F), distCoeffs(1, 5, CV_32F), R(3, 3, CV_32FC1);
+//
+//	for (int i = 0; i < 3; i++)
+//		for (int j = 0; j < 3; j++)
+//		{
+//			cameraMatrix.at<float>(i, j) = A[i][j];
+//			R.at<float>(i, j) = 0;
+//		}
+//	for (int i = 0; i < 5; i++)
+//		distCoeffs.at<float>(0, i) = B[i];
+//	namedWindow("chessboard", 0);
+//	namedWindow("sensed image", 0);
+//	cap >> images;
+//	while (1)
+//	{
+//		cap >> images;
+//		imshow("sensed image", images);
+//		vector<Point2f> corners;
+//		bool found = findChessboardCorners(images, grids, corners, CALIB_CB_ADAPTIVE_THRESH + CALIB_CB_NORMALIZE_IMAGE + CALIB_CB_FAST_CHECK);
+//		if (found)
+//		{
+//			cvtColor(images, gray, CV_BGR2GRAY);
+//			cornerSubPix(gray, corners, Size(11, 11), Size(-1, -1),
+//				TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));//0.1为精度
+//			drawChessboardCorners(images, grids, corners, found);
+//			vector<Point3f> objectPoints = calcBoardCornerPositions(grids.width, grids.height, Grids_Size);
+//			//vector<Point3f> objectPoints = calcBoardCornerPositions(grids.width, grids.height);
+//			solvePnP(objectPoints, corners, cameraMatrix, distCoeffs, rvecs, tvecs);
+//			Rodrigues(rvecs, R);
+//
+//			Ang_X = asin(R.at<double>(1, 0) / cos(asin(-R.at<double>(2, 0)))) / pi * 180;
+//			Ang_Y = asin(-R.at<double>(2, 0)) / pi * 180;
+//			Ang_Z = asin(R.at<double>(2, 1) / cos(asin(-R.at<double>(2, 0)))) / pi * 180;
+//
+//			X = R.at<double>(0, 0) *objectPoints[22].x + R.at<double>(0, 1)  * objectPoints[22].y + R.at<double>(0, 2)  * objectPoints[22].z + tvecs.at<double>(0, 0);
+//			Y = R.at<double>(1, 0) *objectPoints[22].x + R.at<double>(1, 1)  * objectPoints[22].y + R.at<double>(1, 2)  * objectPoints[22].z + tvecs.at<double>(1, 0);
+//			Z = R.at<double>(2, 0) *objectPoints[22].x + R.at<double>(2, 1)  * objectPoints[22].y + R.at<double>(2, 2)  * objectPoints[22].z + tvecs.at<double>(2, 0);
+//			putText(images, "X:" + to_string(X), { 1, 50 }, 0, 1.0f, CV_RGB(255, 0, 0), 2);
+//			putText(images, "Y:" + to_string(Y), { 1, 150 }, 0, 1.0f, CV_RGB(0, 255, 0), 2);
+//			putText(images, "Z:" + to_string(Z), { 1, 250 }, 0, 1.0f, CV_RGB(0, 0, 255), 2);
+//			putText(images, "Ang_X:" + to_string(Ang_X), { 300, 50 }, 0, 1.0f, CV_RGB(255, 0, 0), 2);
+//			putText(images, "Ang_Y:" + to_string(Ang_Y), { 300, 150 }, 0, 1.0f, CV_RGB(0, 255, 0), 2);
+//			putText(images, "Ang_Z:" + to_string(Ang_Z), { 300, 250 }, 0, 1.0f, CV_RGB(0, 0, 255), 2);
+//			imshow("chessboard", images);
+//		}
+//		key = waitKey(20);
+//		if (key == ' ') // 按空格键退出
+//			break;
+//	}
+//	return 0;
+//}
 
-#include <opencv2/core.hpp>
-#include <opencv2/core/utility.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/calib3d.hpp> // this is very important
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/videoio.hpp>
-#include <opencv2/highgui.hpp>
+//==================  read yml file to calibarte new pic ==========================//
 
-#define pi 3.14159265358979323846
-using namespace std;
-using namespace cv;
+//#include "opencv2/opencv.hpp"
+//#include <time.h>
+//
+//using namespace cv;
+//using namespace std;
+//
+//int main()
+//{
+//	//初始化
+//	FileStorage fs2("specs/out_camera_data.yml", FileStorage::READ);
+//
+//	//第一种方法，对FileNode操作
+//	int frameCount = (int)fs2["nrOfFrames"];
+//
+//	
+//	//第二种方法，使用FileNode运算符>>
+//	std::string date;
+//	fs2["calibration_Time"] >> date;
+//
+//	Mat cameraMatrix2, distCoeffs2, exParam2;
+//	fs2["Camera_Matrix"] >> cameraMatrix2;
+//	fs2["Distortion_Coefficients"] >> distCoeffs2;
+//	fs2["Extrinsic_Parameters"] >> exParam2;
+//
+//	cout << "nrOfFrames：" << frameCount << endl
+//		<< "calibration time：" << date << endl
+//		<< "camera matrix：" << cameraMatrix2 << endl
+//		<< "distortion coeffs：" << distCoeffs2 << endl
+//		<< "extrinsic parameters：" << exParam2 << endl;
+//
+//	fs2.release();
+//
+//	printf("\n文件读取完毕，输入任意键结束程序！");
+//	getchar();
+//
+//	return(0);
+//
+//}
 
-vector<Point3f> calcBoardCornerPositions(int gridW, int gridH, float squareSize)
-{
-	vector<Point3f> objectPoints;
-	for (int i = 0; i < gridH; i++)
-		for (int j = 0; j < gridW; j++)
-			objectPoints.push_back(Point3f(float(j*squareSize), float(i*squareSize), 0));
-	return objectPoints;
-}
-
-vector<Point3f> calcBoardCornerPositions(int gridW, int gridH)
-{
-	vector<Point3f> objectPoints;
-	for (int i = 0; i < gridH; i++)
-		for (int j = 0; j < gridW; j++)
-			objectPoints.push_back(Point3f(float(j * 89), float(i * 83), 0));
-	return objectPoints;
-}
-
-int main()
-{
-	VideoCapture cap(0);
-	if (!cap.isOpened()) return -1;
-	//cap.set(CV_CAP_PROP_FRAME_WIDTH, 1920);
-	//cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
-	Mat images, gray;
-	Size grids(9, 6);
-	int Grids_Size = 260;
-	float Ang_X, Ang_Y, Ang_Z;
-	float X, Y, Z;
-	char key; int i = 0;
-	//float A[][3] = { { 644.8137843176841, 0, 302.6526363184274 },{0, 649.3562275395091, 286.5283609342574 },{0, 0, 1 }};
-	//float B[] = { 0.01655500980525433, 0.1901812353222618, 0.003461616464410258, 0.002455084197033077, -1.444734184159016 };
-	float A[][3] = { { 988.74755, 0, 309.709197 },{ 0, 988.2410178, 239.85705 },{ 0, 0, 1 } };
-	float B[] = { -0.41287433, 1.80600373, 0.00250586, 0.0013610796, -7.6232044988 };
-	Mat rvecs(3, 1, CV_32F), tvecs(3, 1, CV_32F), cameraMatrix(3, 3, CV_32F), distCoeffs(1, 5, CV_32F), R(3, 3, CV_32FC1);
-
-	for (int i = 0; i < 3; i++)
-		for (int j = 0; j < 3; j++)
-		{
-			cameraMatrix.at<float>(i, j) = A[i][j];
-			R.at<float>(i, j) = 0;
-		}
-	for (int i = 0; i < 5; i++)
-		distCoeffs.at<float>(0, i) = B[i];
-	namedWindow("chessboard", 0);
-	namedWindow("sensed image", 0);
-	cap >> images;
-	while (1)
-	{
-		cap >> images;
-		imshow("sensed image", images);
-		vector<Point2f> corners;
-		bool found = findChessboardCorners(images, grids, corners, CALIB_CB_ADAPTIVE_THRESH + CALIB_CB_NORMALIZE_IMAGE + CALIB_CB_FAST_CHECK);
-		if (found)
-		{
-			cvtColor(images, gray, CV_BGR2GRAY);
-			cornerSubPix(gray, corners, Size(11, 11), Size(-1, -1),
-				TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));//0.1为精度
-			drawChessboardCorners(images, grids, corners, found);
-			vector<Point3f> objectPoints = calcBoardCornerPositions(grids.width, grids.height, Grids_Size);
-			//vector<Point3f> objectPoints = calcBoardCornerPositions(grids.width, grids.height);
-			solvePnP(objectPoints, corners, cameraMatrix, distCoeffs, rvecs, tvecs);
-			Rodrigues(rvecs, R);
-
-			Ang_X = asin(R.at<double>(1, 0) / cos(asin(-R.at<double>(2, 0)))) / pi * 180;
-			Ang_Y = asin(-R.at<double>(2, 0)) / pi * 180;
-			Ang_Z = asin(R.at<double>(2, 1) / cos(asin(-R.at<double>(2, 0)))) / pi * 180;
-
-			X = R.at<double>(0, 0) *objectPoints[22].x + R.at<double>(0, 1)  * objectPoints[22].y + R.at<double>(0, 2)  * objectPoints[22].z + tvecs.at<double>(0, 0);
-			Y = R.at<double>(1, 0) *objectPoints[22].x + R.at<double>(1, 1)  * objectPoints[22].y + R.at<double>(1, 2)  * objectPoints[22].z + tvecs.at<double>(1, 0);
-			Z = R.at<double>(2, 0) *objectPoints[22].x + R.at<double>(2, 1)  * objectPoints[22].y + R.at<double>(2, 2)  * objectPoints[22].z + tvecs.at<double>(2, 0);
-			putText(images, "X:" + to_string(X), { 1, 50 }, 0, 1.0f, CV_RGB(255, 0, 0), 2);
-			putText(images, "Y:" + to_string(Y), { 1, 150 }, 0, 1.0f, CV_RGB(0, 255, 0), 2);
-			putText(images, "Z:" + to_string(Z), { 1, 250 }, 0, 1.0f, CV_RGB(0, 0, 255), 2);
-			putText(images, "Ang_X:" + to_string(Ang_X), { 300, 50 }, 0, 1.0f, CV_RGB(255, 0, 0), 2);
-			putText(images, "Ang_Y:" + to_string(Ang_Y), { 300, 150 }, 0, 1.0f, CV_RGB(0, 255, 0), 2);
-			putText(images, "Ang_Z:" + to_string(Ang_Z), { 300, 250 }, 0, 1.0f, CV_RGB(0, 0, 255), 2);
-			imshow("chessboard", images);
-		}
-		key = waitKey(20);
-		if (key == ' ') // 按空格键退出
-			break;
-	}
-	return 0;
-}
